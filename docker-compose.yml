@@ -1,0 +1,15 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: mechayaki-postgres
+    environment:
+      POSTGRES_USER: mechayaki
+      POSTGRES_PASSWORD: mechayaki
+      POSTGRES_DB: mechayaki
+    ports:
+      - "5432:5432"
+    volumes:
+      - mechayaki_pgdata:/var/lib/postgresql/data
+
+volumes:
+  mechayaki_pgdata:
