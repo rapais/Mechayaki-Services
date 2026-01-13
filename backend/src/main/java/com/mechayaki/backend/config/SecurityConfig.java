@@ -34,7 +34,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/auth/**").permitAll()
 
                 // public browsing (FIX: add "/api/stalls" explicitly)
-                .requestMatchers(HttpMethod.GET, "/api/stalls", "/api/stalls/**").permitAll()
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/stalls", "/api/stalls/**").permitAll()
 
                 .anyRequest().authenticated()
             )
