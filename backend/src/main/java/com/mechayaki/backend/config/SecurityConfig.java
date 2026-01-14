@@ -33,8 +33,13 @@ public class SecurityConfig {
                 .requestMatchers("/api/health").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/auth/**").permitAll()
 
-                // public browsing (FIX: add "/api/stalls" explicitly)
-                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/stalls", "/api/stalls/**").permitAll()
+                // stalls (TEMP: allow CRUD during development/demo)
+                .requestMatchers(GET, "/api/stalls", "/api/stalls/**").permitAll()
+                .requestMatchers(POST, "/api/stalls", "/api/stalls/**").permitAll()
+                .requestMatchers(org.springframework.http.HttpMethod.PUT, "/api/stalls", "/api/stalls/**").permitAll()
+                .requestMatchers(org.springframework.http.HttpMethod.PATCH, "/api/stalls", "/api/stalls/**").permitAll()
+                .requestMatchers(org.springframework.http.HttpMethod.DELETE, "/api/stalls", "/api/stalls/**").permitAll()
+
 
                 .anyRequest().authenticated()
             )

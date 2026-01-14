@@ -1,3 +1,8 @@
 export default function LandingPage() {
-  return <h1>Mechayaki</h1>;
+  return (
+    <div>
+      <h2>Landing page works</h2>
+      <p>If you can see this, routing is working.</p>
+    </div>
+  );
 }

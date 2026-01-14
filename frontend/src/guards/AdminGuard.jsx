@@ -1,7 +1,12 @@
 import { Navigate } from "react-router-dom";
-import { isLoggedIn } from "../../auth/auth.store";
+import { getAuthUser } from "../auth/auth.store";
 
 export default function AdminGuard({ children }) {
-    if (!isLoggedIn()) return <Navigate to="/admin/login" replace />;
-    return children;
+  const user = getAuthUser();
+  if (!user) return <Navigate to="/admin/login" replace />;
+
+  // optional: enforce only ADMIN role
+  if (user.role && user.role !== "ADMIN") return <Navigate to="/" replace />;
+
+  return children;
 }

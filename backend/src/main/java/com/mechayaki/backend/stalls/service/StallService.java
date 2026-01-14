@@ -1,11 +1,10 @@
 package com.mechayaki.backend.stalls.service;
 
-import org.springframework.stereotype.Service;
-
 import com.mechayaki.backend.stalls.dto.StallCreateRequest;
 import com.mechayaki.backend.stalls.dto.StallResponse;
 import com.mechayaki.backend.stalls.model.Stall;
 import com.mechayaki.backend.stalls.repo.StallRepository;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 
@@ -19,16 +18,37 @@ public class StallService {
     }
 
     public List<StallResponse> getAll() {
-        return repo.findAll().stream()
-                .map(s -> new StallResponse(s.getId(), s.getName(), s.isActive(), s.getCreatedAt()))
+        return repo.findAll()
+                .stream()
+                .map(this::toResponse)
                 .toList();
     }
 
     public StallResponse create(StallCreateRequest req) {
-        if (req == null || req.name() == null || req.name().trim().isEmpty()) {
-            throw new IllegalArgumentException("name is required");
-        }
-        Stall saved = repo.save(new Stall(req.name().trim()));
-        return new StallResponse(saved.getId(), saved.getName(), saved.isActive(), saved.getCreatedAt());
+        Stall s = new Stall();
+        s.setName(req.name);
+        s.setActive(req.active != null ? req.active : true);
+        return toResponse(repo.save(s));
+    }
+
+    public StallResponse update(Long id, StallCreateRequest req) {
+        Stall s = repo.findById(id).orElseThrow(() -> new RuntimeException("Stall not found"));
+        if (req.name != null) s.setName(req.name);
+        if (req.active != null) s.setActive(req.active);
+        return toResponse(repo.save(s));
+    }
+
+    public StallResponse toggleActive(Long id) {
+        Stall s = repo.findById(id).orElseThrow(() -> new RuntimeException("Stall not found"));
+        s.setActive(!s.isActive());
+        return toResponse(repo.save(s));
+    }
+
+    public void delete(Long id) {
+        repo.deleteById(id);
+    }
+
+    private StallResponse toResponse(Stall s) {
+        return new StallResponse(s.getId(), s.getName(), s.isActive());
     }
 }

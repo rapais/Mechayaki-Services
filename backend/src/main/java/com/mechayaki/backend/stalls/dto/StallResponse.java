@@ -1,5 +1,13 @@
 package com.mechayaki.backend.stalls.dto;
 
-import java.time.Instant;
+public class StallResponse {
+    public Long id;
+    public String name;
+    public boolean active;
 
-public record StallResponse(Long id, String name, boolean active, Instant createdAt) {}
+    public StallResponse(Long id, String name, boolean active) {
+        this.id = id;
+        this.name = name;
+        this.active = active;
+    }
+}

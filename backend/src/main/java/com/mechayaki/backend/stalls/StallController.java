@@ -1,26 +1,46 @@
 package com.mechayaki.backend.stalls;
 
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import com.mechayaki.backend.stalls.dto.StallCreateRequest;
+import com.mechayaki.backend.stalls.dto.StallResponse;
+import com.mechayaki.backend.stalls.service.StallService;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/stalls")
 public class StallController {
 
-    @GetMapping
-    public List<Map<String, Object>> getAll() {
-        return List.of(
-            Map.of("id", 1, "name", "Stall A", "active", true),
-            Map.of("id", 2, "name", "Stall B", "active", true)
-        );
+    private final StallService stalls;
+
+    public StallController(StallService stalls) {
+        this.stalls = stalls;
     }
 
-    public StallController() {
-    System.out.println("=== StallController bean created ===");
-}
+    @GetMapping
+    public List<StallResponse> getAll() {
+        return stalls.getAll();
+    }
 
+    @PostMapping
+    public StallResponse create(@RequestBody StallCreateRequest req) {
+        return stalls.create(req);
+    }
+
+    @PutMapping("/{id}")
+    public StallResponse update(@PathVariable Long id, @RequestBody StallCreateRequest req) {
+        return stalls.update(id, req);
+    }
+
+    @PatchMapping("/{id}/toggle")
+    public StallResponse toggle(@PathVariable Long id) {
+        return stalls.toggleActive(id);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        stalls.delete(id);
+        return ResponseEntity.noContent().build();
+    }
 }

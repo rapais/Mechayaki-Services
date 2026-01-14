@@ -1,3 +1,6 @@
 package com.mechayaki.backend.stalls.dto;
 
-public record StallCreateRequest(String name) {}
+public class StallCreateRequest {
+    public String name;
+    public Boolean active;
+}

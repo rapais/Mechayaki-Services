@@ -5,83 +5,173 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import { authApi } from "../../api/auth.api";
-import { setUser } from "../../auth/auth.store";
+import { setAuthUser } from "../../auth/auth.store";
 
-const schema = z.object({
+const loginSchema = z.object({
   email: z.string().email("Enter a valid email"),
   password: z.string().min(1, "Password is required"),
 });
 
+const registerSchema = z.object({
+  name: z.string().min(2, "Name is required"),
+  email: z.string().email("Enter a valid email"),
+  password: z.string().min(6, "Min 6 characters"),
+  role: z.enum(["ADMIN", "VENDOR", "CUSTOMER"]).default("ADMIN"),
+});
+
 export default function AdminLoginPage() {
-  const navigate = useNavigate();
-  const [serverError, setServerError] = useState("");
+  const nav = useNavigate();
+  const [mode, setMode] = useState("login"); // "login" | "register"
+  const [serverMsg, setServerMsg] = useState({ type: "", text: "" });
 
-  const defaultValues = useMemo(() => ({ email: "", password: "" }), []);
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-  } = useForm({ resolver: zodResolver(schema), defaultValues });
+  const schema = useMemo(() => (mode === "login" ? loginSchema : registerSchema), [mode]);
 
-  async function onSubmit(values) {
-    setServerError("");
+  const form = useForm({
+    resolver: zodResolver(schema),
+    defaultValues:
+      mode === "login"
+        ? { email: "", password: "" }
+        : { name: "", email: "", password: "", role: "ADMIN" },
+  });
+
+  // When switching modes, reset fields so the resolver matches fields
+  const switchMode = (next) => {
+    setServerMsg({ type: "", text: "" });
+    setMode(next);
+    if (next === "login") form.reset({ email: "", password: "" });
+    else form.reset({ name: "", email: "", password: "", role: "ADMIN" });
+  };
+
+  const onSubmit = async (values) => {
+    setServerMsg({ type: "", text: "" });
     try {
+      if (mode === "register") {
+        const created = await authApi.register(values); // returns AuthResponse
+        setServerMsg({ type: "ok", text: `Registered: ${created.email} (${created.role}). Now login.` });
+        switchMode("login");
+        form.reset({ email: values.email, password: values.password });
+        return;
+      }
+
       const user = await authApi.login(values);
-      // user = { id, name, email, role }
-      setUser(user);
-      navigate("/admin", { replace: true });
+      setAuthUser(user);
+      nav("/admin", { replace: true });
     } catch (err) {
       const msg =
         err?.response?.data?.error ||
         err?.response?.data?.message ||
-        "Login failed. Check your credentials.";
-      setServerError(msg);
+        "Request failed. Check backend logs / credentials.";
+      setServerMsg({ type: "err", text: msg });
     }
-  }
+  };
 
   return (
-    <div style={{ maxWidth: 420, margin: "40px auto", padding: 24, border: "1px solid #eee", borderRadius: 8 }}>
-      <h1 style={{ marginBottom: 16 }}>Admin Login</h1>
+    <div style={{ maxWidth: 460, margin: "60px auto", padding: 24, border: "1px solid #eee", borderRadius: 10 }}>
+      <h1 style={{ marginBottom: 6 }}>Admin Access</h1>
+      <p style={{ marginTop: 0, color: "#666" }}>Register an admin once, then login.</p>
 
-      {serverError && (
-        <div style={{ background: "#ffecec", border: "1px solid #ffb3b3", padding: 12, borderRadius: 6, marginBottom: 12 }}>
-          {serverError}
-        </div>
-      )}
+      <div style={{ display: "flex", gap: 10, marginTop: 12 }}>
+        <button
+          onClick={() => switchMode("login")}
+          style={{
+            padding: "10px 12px",
+            borderRadius: 10,
+            border: "1px solid #ddd",
+            background: mode === "login" ? "#111" : "white",
+            color: mode === "login" ? "white" : "#111",
+            fontWeight: 800,
+            cursor: "pointer",
+          }}
+          type="button"
+        >
+          Login
+        </button>
 
-      <form onSubmit={handleSubmit(onSubmit)} style={{ display: "grid", gap: 12 }}>
-        <div>
+        <button
+          onClick={() => switchMode("register")}
+          style={{
+            padding: "10px 12px",
+            borderRadius: 10,
+            border: "1px solid #ddd",
+            background: mode === "register" ? "#111" : "white",
+            color: mode === "register" ? "white" : "#111",
+            fontWeight: 800,
+            cursor: "pointer",
+          }}
+          type="button"
+        >
+          Register Admin
+        </button>
+      </div>
+
+      <form onSubmit={form.handleSubmit(onSubmit)} style={{ display: "grid", gap: 12, marginTop: 16 }}>
+        {mode === "register" && (
+          <>
+            <div style={{ display: "grid", gap: 6 }}>
+              <label>Name</label>
+              <input
+                {...form.register("name")}
+                placeholder="Admin Name"
+                style={{ padding: 10, border: "1px solid #ddd", borderRadius: 8 }}
+              />
+              {form.formState.errors.name && <small style={{ color: "crimson" }}>{form.formState.errors.name.message}</small>}
+            </div>
+
+            <div style={{ display: "grid", gap: 6 }}>
+              <label>Role</label>
+              <select {...form.register("role")} style={{ padding: 10, border: "1px solid #ddd", borderRadius: 8 }}>
+                <option value="ADMIN">ADMIN</option>
+                <option value="VENDOR">VENDOR</option>
+                <option value="CUSTOMER">CUSTOMER</option>
+              </select>
+              {form.formState.errors.role && <small style={{ color: "crimson" }}>{form.formState.errors.role.message}</small>}
+            </div>
+          </>
+        )}
+
+        <div style={{ display: "grid", gap: 6 }}>
           <label>Email</label>
           <input
-            {...register("email")}
+            type="email"
+            {...form.register("email")}
             placeholder="admin@mechayaki.com"
-            style={{ width: "100%", padding: 10, border: "1px solid #ddd", borderRadius: 6 }}
+            style={{ padding: 10, border: "1px solid #ddd", borderRadius: 8 }}
           />
-          {errors.email && <small style={{ color: "crimson" }}>{errors.email.message}</small>}
+          {form.formState.errors.email && <small style={{ color: "crimson" }}>{form.formState.errors.email.message}</small>}
         </div>
 
-        <div>
+        <div style={{ display: "grid", gap: 6 }}>
           <label>Password</label>
           <input
             type="password"
-            {...register("password")}
+            {...form.register("password")}
             placeholder="••••••••"
-            style={{ width: "100%", padding: 10, border: "1px solid #ddd", borderRadius: 6 }}
+            style={{ padding: 10, border: "1px solid #ddd", borderRadius: 8 }}
           />
-          {errors.password && <small style={{ color: "crimson" }}>{errors.password.message}</small>}
+          {form.formState.errors.password && <small style={{ color: "crimson" }}>{form.formState.errors.password.message}</small>}
         </div>
+
+        {serverMsg.text && (
+          <div
+            style={{
+              background: serverMsg.type === "ok" ? "#f2fff5" : "#fff5f5",
+              border: `1px solid ${serverMsg.type === "ok" ? "#c8f2d0" : "#ffd6d6"}`,
+              padding: 10,
+              borderRadius: 8,
+              color: serverMsg.type === "ok" ? "#156a2a" : "crimson",
+            }}
+          >
+            {serverMsg.text}
+          </div>
+        )}
 
         <button
           type="submit"
-          disabled={isSubmitting}
-          style={{ padding: 10, borderRadius: 6, border: "1px solid #111", background: "#111", color: "#fff" }}
+          disabled={form.formState.isSubmitting}
+          style={{ padding: 12, borderRadius: 8, border: "none", cursor: "pointer", background: "#111", color: "white", fontWeight: 900 }}
         >
-          {isSubmitting ? "Signing in..." : "Sign in"}
+          {form.formState.isSubmitting ? "Working..." : mode === "login" ? "Login" : "Register"}
         </button>
-
-        <small style={{ color: "#666" }}>
-          Note: current backend returns user profile only (no token yet).
-        </small>
       </form>
     </div>
   );
