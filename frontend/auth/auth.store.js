@@ -1,23 +1,22 @@
-const KEY = "mechayaki_user";
+const KEY = "mechayaki_auth_user";
 
-export function getUser() {
+export function getAuthUser() {
+  try {
     const raw = localStorage.getItem(KEY);
-    if (!raw) return null;
-    try {
-        return JSON.parse(raw);
-    } catch {
-        return null;
-    }
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
 }
 
-export function setUser(user) {
-    localStorage.setItem(KEY, JSON.stringify(user));
+export function setAuthUser(user) {
+  localStorage.setItem(KEY, JSON.stringify(user));
 }
 
-export function clearUser() {
-    localStorage.removeItem(KEY);
+export function clearAuthUser() {
+  localStorage.removeItem(KEY);
 }
 
 export function isLoggedIn() {
-    return getUser() !== null;
-}   
+  return !!getAuthUser();
+}
