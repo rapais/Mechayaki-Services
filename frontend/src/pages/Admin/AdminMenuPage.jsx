@@ -8,12 +8,14 @@ export default function AdminMenuPage() {
   const stalls = useStalls();
 
   const [name, setName] = useState("");
+  const [editId, setEditId] = useState(null);
+  const [editName, setEditName] = useState("");
   const [busyId, setBusyId] = useState(null);
   const [err, setErr] = useState("");
 
-  const sorted = useMemo(() => {
-    const list = stalls.data || [];
-    return [...list].sort((a, b) => a.id - b.id);
+  const list = useMemo(() => {
+    const data = stalls.data || [];
+    return [...data].sort((a, b) => a.id - b.id);
   }, [stalls.data]);
 
   const refresh = async () => qc.invalidateQueries({ queryKey: ["stalls"] });
@@ -27,7 +29,35 @@ export default function AdminMenuPage() {
       setName("");
       await refresh();
     } catch (e) {
-      setErr(e?.response?.data?.message || e?.response?.data?.error || "Create failed");
+      setErr(e?.response?.data?.error || e?.response?.data?.message || "Create failed");
+    }
+  };
+
+  const startEdit = (stall) => {
+    setEditId(stall.id);
+    setEditName(stall.name);
+    setErr("");
+  };
+
+  const cancelEdit = () => {
+    setEditId(null);
+    setEditName("");
+    setErr("");
+  };
+
+  const saveEdit = async (id) => {
+    setErr("");
+    const n = editName.trim();
+    if (!n) return;
+    setBusyId(id);
+    try {
+      await stallsApi.update(id, { name: n });
+      cancelEdit();
+      await refresh();
+    } catch (e) {
+      setErr(e?.response?.data?.error || e?.response?.data?.message || "Update failed");
+    } finally {
+      setBusyId(null);
     }
   };
 
@@ -38,7 +68,7 @@ export default function AdminMenuPage() {
       await stallsApi.toggle(id);
       await refresh();
     } catch (e) {
-      setErr(e?.response?.data?.message || e?.response?.data?.error || "Toggle failed");
+      setErr(e?.response?.data?.error || e?.response?.data?.message || "Toggle failed");
     } finally {
       setBusyId(null);
     }
@@ -54,7 +84,7 @@ export default function AdminMenuPage() {
       await stallsApi.remove(id);
       await refresh();
     } catch (e) {
-      setErr(e?.response?.data?.message || e?.response?.data?.error || "Delete failed");
+      setErr(e?.response?.data?.error || e?.response?.data?.message || "Delete failed");
     } finally {
       setBusyId(null);
     }
@@ -64,7 +94,7 @@ export default function AdminMenuPage() {
     <div style={{ display: "grid", gap: 16 }}>
       <h1>Manage Stalls</h1>
       <p style={{ color: "#666", marginTop: -10 }}>
-        This is real CRUD against PostgreSQL via Spring Boot.
+        Minimal CRUD to satisfy assignment requirements under time constraints.
       </p>
 
       <section style={{ padding: 16, border: "1px solid #eee", borderRadius: 10, display: "grid", gap: 10 }}>
@@ -92,7 +122,9 @@ export default function AdminMenuPage() {
         {stalls.isLoading && <p>Loading...</p>}
         {stalls.isError && <p style={{ color: "crimson" }}>Failed to load stalls</p>}
 
-        {sorted.length > 0 && (
+        {!stalls.isLoading && list.length === 0 && <p>No stalls yet. Create one above.</p>}
+
+        {list.length > 0 && (
           <table cellPadding="8" style={{ borderCollapse: "collapse", width: "100%" }}>
             <thead>
               <tr>
@@ -103,12 +135,25 @@ export default function AdminMenuPage() {
               </tr>
             </thead>
             <tbody>
-              {sorted.map((s) => (
+              {list.map((s) => (
                 <tr key={s.id} style={{ borderTop: "1px solid #eee" }}>
                   <td>{s.id}</td>
-                  <td>{s.name}</td>
+
+                  <td>
+                    {editId === s.id ? (
+                      <input
+                        value={editName}
+                        onChange={(e) => setEditName(e.target.value)}
+                        style={{ padding: 8, borderRadius: 10, border: "1px solid #ddd", width: "100%" }}
+                      />
+                    ) : (
+                      s.name
+                    )}
+                  </td>
+
                   <td>{s.active ? "Yes" : "No"}</td>
-                  <td style={{ display: "flex", gap: 8 }}>
+
+                  <td style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                     <button
                       onClick={() => toggle(s.id)}
                       disabled={busyId === s.id}
@@ -116,6 +161,31 @@ export default function AdminMenuPage() {
                     >
                       {busyId === s.id ? "..." : "Toggle"}
                     </button>
+
+                    {editId === s.id ? (
+                      <>
+                        <button
+                          onClick={() => saveEdit(s.id)}
+                          disabled={busyId === s.id}
+                          style={{ padding: "8px 10px", borderRadius: 10, border: "1px solid #ddd", background: "white", fontWeight: 700 }}
+                        >
+                          Save
+                        </button>
+                        <button
+                          onClick={cancelEdit}
+                          style={{ padding: "8px 10px", borderRadius: 10, border: "1px solid #ddd", background: "white", fontWeight: 700 }}
+                        >
+                          Cancel
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        onClick={() => startEdit(s)}
+                        style={{ padding: "8px 10px", borderRadius: 10, border: "1px solid #ddd", background: "white", fontWeight: 700 }}
+                      >
+                        Edit
+                      </button>
+                    )}
 
                     <button
                       onClick={() => remove(s.id)}
@@ -130,8 +200,6 @@ export default function AdminMenuPage() {
             </tbody>
           </table>
         )}
-
-        {sorted.length === 0 && !stalls.isLoading && <p>No stalls yet. Create one above.</p>}
       </section>
     </div>
   );
