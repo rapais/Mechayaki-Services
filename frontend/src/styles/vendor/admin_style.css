@@ -1,145 +1,337 @@
-/* General Styles */
-body {
-    display: flex;
-    margin: 0;
-    font-family: Arial, sans-serif;
+:root{
+  /* Same “tablet” palette */
+  --side:#d9b88c;          /* beige */
+  --side-dark:#cda872;
+  --bg:#f3f3f3;            /* app background */
+  --card:#ffffff;
+  --border:#e2e2e2;
+  --text:#2b2b2b;
+  --muted:#6f6f6f;
+
+  --accent:#ef7f66;        /* orange highlight like your screenshot */
+  --accent-dark:#d96a54;
+
+  --ok:#2e7d32;
+  --warn:#ed6c02;
+
+  --radius:16px;
+  --shadow: 0 10px 30px rgba(0,0,0,.06);
 }
 
-.sidebar {
-    width: 200px;
-    background-color: #d4b380;
-    color: white;
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: space-between;
-    height: 100vh;
+*{ box-sizing:border-box; }
+html, body, #root { height:100%; }
+body{
+  margin:0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
 }
 
-.sidebar .logo {
-    font-size: 24px;
-    margin-bottom: 20px;
+/* Fullscreen shell (tablet-like) */
+.adminShell{
+  height: 100vh;
+  width: 100vw;
+  display: grid;
+  grid-template-columns: 290px 1fr;
+  overflow: hidden;
 }
 
-.sidebar nav a {
-    color: white;
-    text-decoration: none;
-    margin: 10px 0;
-    display: block;
-    text-align: center;
+/* Sidebar */
+.adminSidebar{
+  background: var(--side);
+  padding: 18px;
+  display: grid;
+  grid-template-rows: auto auto 1fr auto;
+  gap: 14px;
+  border-right: 1px solid rgba(0,0,0,.05);
 }
 
-.sidebar nav a:hover {
-    background-color: #b5965b;
-    padding: 5px 0;
+/* Brand card top */
+.adminBrand{
+  display:flex;
+  align-items:center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: var(--radius);
+  background: rgba(255,255,255,.28);
+  border: 1px solid rgba(255,255,255,.35);
 }
 
-.version {
-    font-size: 12px;
-    margin-top: 20px;
+.adminBrandLogo{
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 2px rgba(0,0,0,.08));
 }
 
-.main-content {
-    flex: 1;
-    padding: 20px;
-    background-color: #f3f3f3;
+.adminBrandText{
+  display:flex;
+  flex-direction:column;
+  line-height: 1.1;
 }
 
-.top-bar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background-color: #f7f7f7;
-    padding: 10px 20px;
-    margin-bottom: 20px;
-    border: 1px solid #e0e0e0;
+.adminBrandText b{
+  font-size: 14px;
+  letter-spacing: .2px;
 }
 
-.top-bar input[type="text"] {
-    width: 70%;
-    padding: 8px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
+.adminBrandText span{
+  font-weight: 800;
+  font-size: 12px;
+  color: rgba(43,43,43,.75);
 }
 
-.top-bar button {
-    background-color: #d4b380;
-    color: white;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 4px;
-    cursor: pointer;
+/* Nav */
+.adminNav{
+  display: grid;
+  gap: 10px;
 }
 
-.top-bar button:hover {
-    background-color: #b5965b;
+.adminNav a{
+  text-decoration:none;
+  color: #4a3b2c;
+  font-weight: 950;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: rgba(255,255,255,.18);
+  border: 1px solid rgba(255,255,255,.22);
+  transition: transform .06s ease, background .12s ease;
 }
 
-.menu-section {
-    background-color: white;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+.adminNav a:hover{
+  background: rgba(255,255,255,.32);
 }
 
-h2 {
-    color: #333;
+.adminNav a.active{
+  background: var(--accent);
+  color: #fff;
+  border-color: transparent;
 }
 
-.add-menu-form {
-    display: flex;
-    flex-direction: column;
+/* Sidebar footer */
+.adminSidebarFooter{
+  display:flex;
+  justify-content: space-between;
+  align-items:center;
+  gap: 12px;
 }
 
-.add-menu-form label {
-    margin-top: 10px;
-    font-weight: bold;
+.adminSidebarFooter span{
+  font-weight: 900;
+  color: rgba(74,59,44,.7);
 }
 
-.add-menu-form input, .add-menu-form select, .add-menu-form button {
-    padding: 8px;
-    margin-top: 5px;
-    border-radius: 4px;
+.adminBtn{
+  border:none;
+  cursor:pointer;
+  padding: 10px 12px;
+  border-radius: 12px;
+  font-weight: 950;
+  background-color: red;
+  color: #fff;
 }
 
-.add-menu-form button {
-    margin-top: 15px;
-    background-color: #d4b380;
-    color: #fff;
-    border: none;
-    cursor: pointer;
+.adminBtnDanger{
+  background: rgba(255,255,255,.5);
+  color: #2b2b2b;
+  border: 1px solid rgba(255,255,255,.35);
+}
+.adminBtnDanger:hover{
+  background: rgba(255,255,255,.65);
 }
 
-.add-menu-form button:hover {
-    background-color: #b5965b;
+/* Main area */
+.adminMain{
+  height: 100%;
+  overflow: auto;
+  padding: 18px 22px 26px;
 }
 
-.menu-list {
-    margin-top: 20px;
+/* Topbar (fixed feel) */
+.adminTopbar{
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: var(--bg);
+  padding: 4px 0 14px;
+  margin-bottom: 12px;
+  display:flex;
+  align-items:center;
+  justify-content: space-between;
 }
 
-.menu-list h2 {
-    margin-bottom: 10px;
+.adminTopbar h1{
+  margin: 0;
+  font-size: 20px;
+  font-weight: 1000;
+  letter-spacing: .2px;
 }
 
-.menu-list table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 10px;
+.adminTopbarRight{
+  display:flex;
+  align-items:center;
+  gap: 10px;
 }
 
-.menu-list th, .menu-list td {
-    border: 1px solid #ddd;
-    padding: 8px;
-    text-align: center;
+.adminPill{
+  border: 1px solid var(--border);
+  background: #fff;
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-weight: 950;
+  color: var(--text);
 }
 
-.menu-list th {
-    background-color: #f2f2f2;
-    font-weight: bold;
+/* Page content wrapper */
+.adminContent{
+  width: min(1100px, 100%);
 }
 
-.menu-list img {
-    border-radius: 4px;
+/* Generic “card” utilities */
+.adminCard{
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 16px;
 }
+
+.adminGrid{
+  display:grid;
+  gap: 14px;
+}
+
+.adminStats{
+  display:grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+@media (max-width: 1100px){
+  .adminStats{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 720px){
+  .adminShell{ grid-template-columns: 1fr; }
+  .adminSidebar{
+    grid-template-rows: auto auto;
+    grid-auto-rows: auto;
+  }
+}
+
+/* Stat card */
+.adminStat{
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px;
+  box-shadow: var(--shadow);
+}
+.adminStatLabel{
+  font-weight: 900;
+  color: var(--muted);
+  font-size: 12px;
+}
+.adminStatValue{
+  margin-top: 6px;
+  font-size: 22px;
+  font-weight: 1100;
+}
+.adminBadge{
+  display:inline-flex;
+  margin-top: 8px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-weight: 950;
+  font-size: 12px;
+  border: 1px solid var(--border);
+  background: #fff;
+}
+.adminBadge.ok{
+  border-color: rgba(46,125,50,.3);
+  color: var(--ok);
+}
+.adminBadge.demo{
+  border-color: rgba(239,127,102,.35);
+  color: var(--accent-dark);
+}
+.adminBadge.neutral{
+  color: var(--muted);
+}
+
+/* Table styling */
+.adminTable{
+  width:100%;
+  border-collapse: collapse;
+  overflow: hidden;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: #fff;
+}
+
+.adminTable th{
+  text-align:left;
+  font-size: 12px;
+  letter-spacing: .35px;
+  text-transform: uppercase;
+  color: rgba(43,43,43,.55);
+  padding: 12px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.adminTable td{
+  padding: 12px 12px;
+  border-top: 1px solid rgba(0,0,0,.04);
+  font-weight: 800;
+  color: rgba(43,43,43,.85);
+}
+
+.adminTable tr:hover td{
+  background: rgba(217,184,140,.18);
+}
+
+/* Form inputs/buttons inside admin pages */
+.adminInput{
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  outline: none;
+  font-weight: 800;
+  background-color: #e2e2e2;
+}
+.adminInput:focus{
+  border-color: rgba(239,127,102,.55);
+  box-shadow: 0 0 0 4px rgba(239,127,102,.12);
+}
+
+.adminBtnPrimary{
+  background: var(--accent);
+  color: #fff;
+}
+.adminBtnPrimary:hover{
+  background: var(--accent-dark);
+}
+
+/* Prevent “rotated / sideways” weirdness from old CSS */
+.adminShell, .adminMain, .adminSidebar{
+  transform: none !important;
+}
+
+.adminImgThumb{
+  width: 100px;
+  height: 100px;
+  border-radius: 10px;
+  object-fit: cover;
+  border: 1px solid var(--border);
+  background: #fff;
+  display: block;
+}
+
+.adminBtnSoft{
+  background: rgba(255,255,255,.55);
+  color: var(--text);
+  border: 1px solid rgba(0,0,0,.06);
+}
+.adminBtnSoft:hover{
+  background: rgba(255,255,255,.75);
+}
+

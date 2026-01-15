@@ -13,6 +13,13 @@ import "./styles/vendor/owl.carousel.css";
 import "./styles/vendor/owl.theme.default.min.css";
 import "./styles/vendor/magnific-popup.css";
 import "./styles/vendor/templatemo-style.css";
+import "./styles/vendor/public.css";
+import "./styles/vendor/admin_style.css";
+import "./styles/vendor/tablet.css";
+
+import "owl.carousel/dist/assets/owl.carousel.css";
+import "owl.carousel/dist/assets/owl.theme.default.css";
+
 
 
 const queryClient = new QueryClient({

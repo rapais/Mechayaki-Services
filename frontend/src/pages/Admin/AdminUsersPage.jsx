@@ -1,8 +1,14 @@
 export default function AdminUsersPage() {
   return (
-    <div style={{ display: "grid", gap: 10 }}>
-      <h1>Admin Users</h1>
-      <p>Placeholder. Next we implement user list and role/status updates.</p>
+    <div className="card">
+      <h2 className="cardTitle">User Management</h2>
+      <div className="cardSub">
+        Admin can manage users and roles in a future iteration.
+      </div>
+
+      <div style={{ marginTop: 20, color: "var(--muted)" }}>
+        User list not implemented yet.
+      </div>
     </div>
   );
 }

@@ -1,19 +1,10 @@
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { clearAuthUser, getAuthUser } from "../auth/auth.store";
+import "../styles/vendor/admin_style.css";
 
 function SideLink({ to, label }) {
   return (
-    <NavLink
-      to={to}
-      style={({ isActive }) => ({
-        textDecoration: "none",
-        color: isActive ? "#111" : "#555",
-        fontWeight: isActive ? 800 : 650,
-        padding: "10px 12px",
-        borderRadius: 10,
-        background: isActive ? "#f2f2f2" : "transparent",
-      })}
-    >
+    <NavLink to={to} end={to === "/admin"} className={({ isActive }) => (isActive ? "active" : "")}>
       {label}
     </NavLink>
   );
@@ -21,45 +12,57 @@ function SideLink({ to, label }) {
 
 export default function AdminLayout() {
   const nav = useNavigate();
-  const user = getAuthUser();
+  const user = getAuthUser?.() || null;
+
+  const onLogout = () => {
+    clearAuthUser?.();
+    nav("/admin/login");
+  };
 
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "260px 1fr", minHeight: "100vh" }}>
-      <aside style={{ padding: 16, borderRight: "1px solid #eee" }}>
-        <div style={{ display: "grid", gap: 6 }}>
-          <h2 style={{ margin: 0 }}>Admin</h2>
-          <small style={{ color: "#666" }}>{user ? `${user.name} (${user.role})` : "Not signed in"}</small>
+    <div className="adminShell">
+      <aside className="adminSidebar">
+        <div className="adminBrand">
+          <img
+            src="/images/logo_white.png"
+            alt="Mechayaki"
+            className="adminBrandLogo"
+            onError={(e) => (e.currentTarget.style.display = "none")}
+          />
+          <div className="adminBrandText">
+            <b>Mechayaki Admin</b>
+            <span>{user?.email || "admin session"}</span>
+          </div>
         </div>
 
-        <nav style={{ display: "grid", gap: 8, marginTop: 16 }}>
+        <nav className="adminNav">
           <SideLink to="/admin" label="Dashboard" />
           <SideLink to="/admin/menu" label="Menu" />
           <SideLink to="/admin/orders" label="Orders" />
-          <SideLink to="/admin/users" label="Users" />
+          <SideLink to="/admin/users" label="User Management" />
         </nav>
 
-        <button
-          onClick={() => {
-            clearAuthUser();
-            nav("/admin/login", { replace: true });
-          }}
-          style={{
-            marginTop: 20,
-            padding: "10px 12px",
-            borderRadius: 10,
-            border: "1px solid #ddd",
-            background: "white",
-            cursor: "pointer",
-            fontWeight: 700,
-          }}
-        >
-          Logout
-        </button>
+        <div className="adminSidebarFooter">
+          <span>v1.0</span>
+          <button className="adminBtn adminBtnDanger" onClick={onLogout} type="button">
+            Logout
+          </button>
+        </div>
       </aside>
 
-      <main style={{ padding: 24 }}>
-        <Outlet />
-      </main>
+      <section className="adminMain">
+        <div className="adminTopbar">
+          <h1>Admin Panel</h1>
+          <div className="adminTopbarRight">
+            <span className="adminPill">{user?.role || "ADMIN"}</span>
+            <span className="adminPill">Connected</span>
+          </div>
+        </div>
+
+        <div className="adminContent">
+          <Outlet />
+        </div>
+      </section>
     </div>
   );
 }

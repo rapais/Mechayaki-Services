@@ -40,6 +40,21 @@ public class SecurityConfig {
                 .requestMatchers(org.springframework.http.HttpMethod.PATCH, "/api/stalls", "/api/stalls/**").permitAll()
                 .requestMatchers(org.springframework.http.HttpMethod.DELETE, "/api/stalls", "/api/stalls/**").permitAll()
 
+                // menu items
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/menu-items", "/api/menu-items/**").permitAll()
+                .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/menu-items").permitAll()
+                .requestMatchers(org.springframework.http.HttpMethod.PUT, "/api/menu-items/**").permitAll()
+                .requestMatchers(org.springframework.http.HttpMethod.DELETE, "/api/menu-items/**").permitAll()
+
+                // dev endpoints
+                .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/dev/**").permitAll()
+
+                // tablet checkout 
+                .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/orders").permitAll()
+
+                // admin viewing orders 
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/orders", "/api/orders/**").permitAll()
+                .requestMatchers(org.springframework.http.HttpMethod.PATCH, "/api/orders/**").permitAll()
 
                 .anyRequest().authenticated()
             )

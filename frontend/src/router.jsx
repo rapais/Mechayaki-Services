@@ -19,7 +19,6 @@ import ContactPage from "./pages/public/ContactPage";
 import TabletHomePage from "./pages/tablet/TabletHomePage";
 import TabletMenuPage from "./pages/tablet/TabletMenuPage";
 import TabletOrdersPage from "./pages/tablet/TabletOrdersPage";
-import TabletPaymentPage from "./pages/tablet/TabletPaymentPage";
 
 // Admin
 import AdminLoginPage from "./pages/admin/AdminLoginPage";
@@ -41,7 +40,7 @@ export const router = createBrowserRouter([
   },
 
   {
-    path: "/app",
+    path: "/tablet",
     element: (
       <TableSessionGuard>
         <TabletLayout />
@@ -51,9 +50,9 @@ export const router = createBrowserRouter([
       { index: true, element: <TabletHomePage /> },
       { path: "menu", element: <TabletMenuPage /> },
       { path: "orders", element: <TabletOrdersPage /> },
-      { path: "payment", element: <TabletPaymentPage /> },
     ],
   },
+
 
   { path: "/admin/login", element: <AdminLoginPage /> },
   {

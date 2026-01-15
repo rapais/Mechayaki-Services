@@ -1,85 +1,167 @@
-import { useNavigate } from "react-router-dom";
-import { getTabletSession, clearTabletSession } from "../../tablet/tabletSession";
-
-const CART_KEY = "mechayaki_tablet_cart";
-const ORDERS_KEY = "mechayaki_orders_mock";
-
-function getCart() {
-  try { return JSON.parse(localStorage.getItem(CART_KEY) || "[]"); } catch { return []; }
-}
-function setCart(items) {
-  localStorage.setItem(CART_KEY, JSON.stringify(items));
-}
-function getOrders() {
-  try { return JSON.parse(localStorage.getItem(ORDERS_KEY) || "[]"); } catch { return []; }
-}
-function setOrders(items) {
-  localStorage.setItem(ORDERS_KEY, JSON.stringify(items));
-}
+import { useMemo, useState } from "react";
+import { ordersApi } from "../../api/orders.api";
+import { allItems } from "../../tablet/tabletMenu.data.js";
+import { readCart, addToCart, decFromCart, clearCart } from "../../tablet/tabletCart.js";
 
 export default function TabletOrdersPage() {
-  const nav = useNavigate();
-  const session = getTabletSession();
-  const cart = getCart();
+  const [cart, setCart] = useState(() => readCart());
+  const [payment, setPayment] = useState("Cash");
+  const [note, setNote] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState("");
 
-  if (!session) {
-    return (
-      <div style={{ padding: 24 }}>
-        <h1>No tablet session</h1>
-        <button onClick={() => nav("/tablet")} style={{ padding: 10, borderRadius: 10 }}>
-          Go to Tablet Home
-        </button>
-      </div>
-    );
-  }
+  const items = allItems();
 
-  const place = () => {
-    const orders = getOrders();
-    const newOrder = {
-      id: crypto.randomUUID(),
-      stallId: session.stallId,
-      tableNo: session.tableNo,
-      items: cart,
-      createdAt: new Date().toISOString(),
-      status: "PLACED",
-    };
-    setOrders([newOrder, ...orders]);
-    setCart([]);
-    nav("/tablet/payment");
+  const selected = useMemo(() => {
+    return items
+      .map((i) => ({ ...i, qty: cart[i.id] || 0 }))
+      .filter((i) => i.qty > 0);
+  }, [cart, items]);
+
+  const total = useMemo(() => {
+    return selected.reduce((sum, i) => sum + i.qty * i.price, 0);
+  }, [selected]);
+
+  const pay = async () => {
+    setErr("");
+    if (selected.length === 0) {
+      setErr("Cart is empty. Add items from Menu first.");
+      return;
+    }
+
+    setBusy(true);
+    try {
+      const payload = {
+        paymentMethod: payment,
+        note: note.trim() || null,
+        items: selected.map((i) => ({
+          menuId: i.id,
+          name: i.name,
+          price: i.price,
+          qty: i.qty,
+        })),
+        total,
+      };
+
+      await ordersApi.create(payload);
+
+      clearCart();
+      setCart({});
+      setNote("");
+      alert("Order paid and saved. You can view it in Admin > Orders.");
+    } catch (e) {
+      setErr(e?.response?.data?.message || "Failed to create order");
+    } finally {
+      setBusy(false);
+    }
   };
 
-  const back = () => nav("/tablet/menu");
-
   return (
-    <div style={{ maxWidth: 720, margin: "30px auto", padding: 24, display: "grid", gap: 14 }}>
-      <h1>Review Order</h1>
-      <p style={{ color: "#666", marginTop: -10 }}>
-        Stall <b>#{session.stallId}</b> | Table <b>{session.tableNo}</b>
-      </p>
+    <div className="tbPage">
+      <div className="tbTwoCol">
+        {/* Left: Selected items only */}
+        <div>
+          <h2 style={{ margin: 0, fontWeight: 950 }}>Checkout</h2>
+          <div style={{ color: "var(--tb-muted)", fontWeight: 800, marginBottom: 12 }}>
+            Selected items only. Add more from Menu.
+          </div>
 
-      <section style={{ padding: 16, border: "1px solid #eee", borderRadius: 10 }}>
-        {cart.length === 0 ? <p>No items in cart.</p> : (
-          <ul>
-            {cart.map((i) => <li key={i.id}>{i.name} × {i.qty}</li>)}
-          </ul>
-        )}
+          {err && (
+            <div style={{ color: "crimson", fontWeight: 900, marginBottom: 10 }}>
+              {err}
+            </div>
+          )}
 
-        <div style={{ display: "flex", gap: 10, marginTop: 12 }}>
-          <button onClick={back} style={btn}>Back</button>
-          <button onClick={place} disabled={cart.length === 0} style={{ ...btn, background: "#111", color: "white", border: "none" }}>
-            Place Order
-          </button>
+          {selected.length === 0 ? (
+            <div style={{ background: "white", border: "1px solid var(--tb-border)", borderRadius: 10, padding: 14 }}>
+              No items selected.
+            </div>
+          ) : (
+            <div style={{ background: "white", border: "1px solid var(--tb-border)", borderRadius: 10, padding: 12 }}>
+              {selected.map((i) => (
+                <div className="tbCartItem" key={i.id}>
+                  <img className="tbThumb" src={i.img} alt={i.name} />
+                  <div>
+                    <div className="tbCartName">{i.name}</div>
+                    <div className="tbCartPrice">RM {i.price}</div>
+                  </div>
+                  <div className="tbQtyCtrl">
+                    <button className="tbQtyBtn" onClick={() => setCart(decFromCart(i.id))}>-</button>
+                    <div className="tbQtyNum">{i.qty}</div>
+                    <button className="tbQtyBtn" onClick={() => setCart(addToCart(i.id))}>+</button>
+                  </div>
+                </div>
+              ))}
+
+              <div className="tbCartTotal" style={{ marginTop: 12 }}>
+                <span>Total</span>
+                <span>RM {total}</span>
+              </div>
+            </div>
+          )}
+
+          <div style={{ marginTop: 14, display: "grid", gap: 10 }}>
+            <div style={{ display: "grid", gap: 6 }}>
+              <div style={{ fontWeight: 950 }}>Payment Method</div>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                {["Cash", "E-wallet", "Card"].map((m) => (
+                  <button
+                    key={m}
+                    type="button"
+                    onClick={() => setPayment(m)}
+                    style={{
+                      borderRadius: 10,
+                      padding: "10px 12px",
+                      fontWeight: 950,
+                      cursor: "pointer",
+                      border: "1px solid var(--tb-border)",
+                      background: payment === m ? "var(--tb-side)" : "white",
+                      color: payment === m ? "white" : "var(--tb-text)",
+                    }}
+                  >
+                    {m}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div style={{ display: "grid", gap: 6 }}>
+              <div style={{ fontWeight: 950 }}>Note (optional)</div>
+              <input
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                placeholder="Example: less spicy, no ice, etc."
+                style={{
+                  padding: 12,
+                  borderRadius: 10,
+                  border: "1px solid var(--tb-border)",
+                  fontWeight: 800,
+                }}
+              />
+            </div>
+          </div>
         </div>
-      </section>
 
-      <button
-        onClick={() => { clearTabletSession(); nav("/tablet"); }}
-        style={{ ...btn, justifySelf: "start" }}
-      >
-        End Session
-      </button>
+        {/* Right: Summary + Pay */}
+        <aside className="tbCartPanel">
+          <h3 className="tbCartTitle">Order Summary</h3>
+          <div style={{ color: "var(--tb-muted)", fontWeight: 800 }}>
+            Items: <b>{selected.reduce((s, i) => s + i.qty, 0)}</b>
+          </div>
+          <div style={{ color: "var(--tb-muted)", fontWeight: 800, marginTop: 6 }}>
+            Payment: <b>{payment}</b>
+          </div>
+
+          <div className="tbCartTotal" style={{ marginTop: 12 }}>
+            <span>Total</span>
+            <span>RM {total}</span>
+          </div>
+
+          <button className="tbCta" disabled={busy} onClick={pay}>
+            {busy ? "Processing..." : "Pay & Send Order"}
+          </button>
+        </aside>
+      </div>
     </div>
   );
 }
-
-const btn = { padding: "10px 12px", borderRadius: 10, border: "1px solid #ddd", background: "white", fontWeight: 800, cursor: "pointer" };

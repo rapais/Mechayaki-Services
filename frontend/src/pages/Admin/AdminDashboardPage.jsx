@@ -6,33 +6,53 @@ export default function AdminDashboardPage() {
   const stalls = useStalls();
 
   return (
-    <div style={{ display: "grid", gap: 16 }}>
-      <h1>Admin Dashboard</h1>
+    <div className="adminGrid">
+      <div className="adminStats">
+        <div className="adminStat">
+          <div className="adminStatLabel">System Health</div>
+          <div className="adminStatValue">{health.data?.status?.toUpperCase?.() || "—"}</div>
+          <span className={`adminBadge ${health.data ? "ok" : "neutral"}`}>
+            {health.data ? "Online" : "Loading"}
+          </span>
+        </div>
 
-      <section style={{ padding: 16, border: "1px solid #eee", borderRadius: 10 }}>
-        <h2 style={{ marginTop: 0 }}>System Health</h2>
-        {health.isLoading && <p>Loading health...</p>}
-        {health.isError && <p style={{ color: "crimson" }}>Health error</p>}
-        {health.data && <p>Status: <b>{health.data.status}</b></p>}
-      </section>
+        <div className="adminStat">
+          <div className="adminStatLabel">Total Stalls</div>
+          <div className="adminStatValue">{stalls.data?.length ?? "—"}</div>
+          <span className="adminBadge demo">CRUD Enabled</span>
+        </div>
 
-      <section style={{ padding: 16, border: "1px solid #eee", borderRadius: 10 }}>
-        <h2 style={{ marginTop: 0 }}>Stalls</h2>
-        {stalls.isLoading && <p>Loading stalls...</p>}
-        {stalls.isError && <p style={{ color: "crimson" }}>Stalls error</p>}
+        <div className="adminStat">
+          <div className="adminStatLabel">Orders</div>
+          <div className="adminStatValue">0</div>
+          <span className="adminBadge neutral">Demo</span>
+        </div>
+
+        <div className="adminStat">
+          <div className="adminStatLabel">Users</div>
+          <div className="adminStatValue">—</div>
+          <span className="adminBadge neutral">Admin</span>
+        </div>
+      </div>
+
+      <div className="adminCard">
+        <h2 style={{ margin: 0, fontWeight: 1000 }}>Live Data</h2>
+        <p style={{ marginTop: 8, color: "var(--muted)", fontWeight: 800 }}>
+          Quick snapshot from REST API.
+        </p>
 
         {stalls.data && (
-          <table cellPadding="8" style={{ borderCollapse: "collapse", width: "100%" }}>
+          <table className="adminTable">
             <thead>
               <tr>
-                <th align="left">ID</th>
-                <th align="left">Name</th>
-                <th align="left">Active</th>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Active</th>
               </tr>
             </thead>
             <tbody>
               {stalls.data.map((s) => (
-                <tr key={s.id} style={{ borderTop: "1px solid #eee" }}>
+                <tr key={s.id}>
                   <td>{s.id}</td>
                   <td>{s.name}</td>
                   <td>{s.active ? "Yes" : "No"}</td>
@@ -41,7 +61,8 @@ export default function AdminDashboardPage() {
             </tbody>
           </table>
         )}
-      </section>
+      </div>
     </div>
   );
 }
+

@@ -1,5 +1,11 @@
-import { api, unwrap } from "./axios";
+import axios from "axios";
+
+const http = axios.create({
+  baseURL: "http://localhost:8080/api",
+});
 
 export const healthApi = {
-  list: () => api.get("/api/health").then(unwrap),
+  get() {
+    return http.get("/health").then((r) => r.data);
+  },
 };
